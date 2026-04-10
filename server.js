@@ -1,18 +1,16 @@
 // ===== IMPORTS =====
-const Groq = require("groq-sdk");
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-});
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // ===== INIT =====
 const app = express();
+
+// ===== GEMINI INIT =====
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ===== MIDDLEWARE =====
 app.use(cors({
@@ -61,7 +59,6 @@ app.post("/api/register", async (req, res) => {
 
     await user.save();
 
-    // 🔥 RETURN TOKEN ALSO
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
@@ -105,36 +102,35 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// CHAT
+// ===== GEMINI CHAT =====
 app.post("/api/chat", async (req, res) => {
   try {
-    console.log("BODY:", req.body); // 👈 ADD THIS
-
     const { message } = req.body;
 
+    console.log("USER:", message);
+
     if (!message) {
-      return res.json({ reply: "❌ NO MESSAGE RECEIVED" });
+      return res.json({ reply: "❌ No message received" });
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      return res.json({ reply: "❌ API KEY MISSING" });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({ reply: "❌ Gemini API key missing" });
     }
 
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: "user", content: message }
-      ],
-      model: "llama-3.3-70b-versatile"
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash"
     });
 
-    console.log("GROQ RESPONSE:", completion);
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const text = response.text();
 
-    const reply = completion.choices?.[0]?.message?.content;
+    console.log("GEMINI:", text);
 
-    res.json({ reply });
+    res.json({ reply: text });
 
   } catch (err) {
-    console.error("FULL ERROR:", err); // 👈 IMPORTANT
+    console.error("ERROR:", err);
     res.json({ reply: "❌ " + err.message });
   }
 });
