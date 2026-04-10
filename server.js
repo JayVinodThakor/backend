@@ -1,4 +1,10 @@
 // ===== IMPORTS =====
+const Groq = require("groq-sdk");
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
+});
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
