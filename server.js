@@ -114,7 +114,7 @@ app.post("/api/chat", async (req, res) => {
 
     // Initialize inside the route to be safe
     const client = new GoogleGenerativeAI(apiKey);
-    const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash" });
 
     const result = await model.generateContent(message);
     const text = result.response.text();
