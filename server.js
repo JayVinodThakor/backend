@@ -135,7 +135,7 @@ app.post("/api/chat", async (req, res) => {
 
   } catch (err) {
     console.error("FULL ERROR:", err); // 👈 IMPORTANT
-    res.json({ reply: "❌ GROQ ERROR" });
+    res.json({ reply: "❌ " + err.message });
   }
 });
 
