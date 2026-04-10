@@ -110,22 +110,35 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
+    console.log("USER:", message);
+
+    if (!process.env.GROQ_API_KEY) {
+      return res.json({ reply: "❌ API KEY MISSING" });
+    }
+
     const completion = await groq.chat.completions.create({
       messages: [
         { role: "user", content: message }
       ],
-      model: "llama3-8b-8192"
+      model: "llama-3.3-70b-versatile"
     });
 
-    const reply = completion.choices[0].message.content;
+    console.log("RAW:", completion);
+
+    const reply = completion.choices?.[0]?.message?.content;
+
+    if (!reply) {
+      return res.json({ reply: "❌ NO RESPONSE FROM GROQ" });
+    }
 
     res.json({ reply });
 
   } catch (err) {
-    console.error(err);
-    res.json({ reply: "Error from AI" }); // <- THIS is what you're seeing
+    console.error("ERROR:", err.message);
+    res.json({ reply: "❌ GROQ ERROR" });
   }
 });
+
 // ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 
