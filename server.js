@@ -106,34 +106,26 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    console.log("USER:", message);
-
-    if (!message) {
-      return res.json({ reply: "❌ No message received" });
+    if (!apiKey) {
+      return res.status(500).json({ reply: "❌ Backend Error: API Key missing from Railway variables." });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({ reply: "❌ Gemini API key missing" });
-    }
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash"
-    });
+    // Initialize inside the route to be safe
+    const client = new GoogleGenerativeAI(apiKey);
+    const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(message);
-    const response = await result.response;
-    const text = response.text();
-
-    console.log("GEMINI:", text);
+    const text = result.response.text();
 
     res.json({ reply: text });
-
   } catch (err) {
-    console.error("ERROR:", err);
-    res.json({ reply: "❌ " + err.message });
+    console.error("DETAILED ERROR:", err);
+    res.status(500).json({ reply: "❌ AI Error: " + err.message });
   }
-});// ===== START SERVER =====
+});
+// ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
