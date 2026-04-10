@@ -37,6 +37,10 @@ const User = mongoose.model("User", userSchema);
 
 // ===== ROUTES =====
 
+app.get("/test", (req, res) => {
+  res.json({ msg: "Backend working perfectly" });
+});
+
 // TEST
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
