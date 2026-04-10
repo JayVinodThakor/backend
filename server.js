@@ -108,9 +108,13 @@ app.post("/api/login", async (req, res) => {
 // CHAT
 app.post("/api/chat", async (req, res) => {
   try {
+    console.log("BODY:", req.body); // 👈 ADD THIS
+
     const { message } = req.body;
 
-    console.log("USER:", message);
+    if (!message) {
+      return res.json({ reply: "❌ NO MESSAGE RECEIVED" });
+    }
 
     if (!process.env.GROQ_API_KEY) {
       return res.json({ reply: "❌ API KEY MISSING" });
@@ -123,18 +127,14 @@ app.post("/api/chat", async (req, res) => {
       model: "llama-3.3-70b-versatile"
     });
 
-    console.log("RAW:", completion);
+    console.log("GROQ RESPONSE:", completion);
 
     const reply = completion.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      return res.json({ reply: "❌ NO RESPONSE FROM GROQ" });
-    }
 
     res.json({ reply });
 
   } catch (err) {
-    console.error("ERROR:", err.message);
+    console.error("FULL ERROR:", err); // 👈 IMPORTANT
     res.json({ reply: "❌ GROQ ERROR" });
   }
 });
