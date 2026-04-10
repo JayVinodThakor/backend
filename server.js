@@ -110,14 +110,25 @@ app.post("/api/chat", async (req, res) => {
   const { message } = req.body;
 
   try {
-    const reply = "AI says: " + message;
-    res.json({ reply });
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: message
+        }
+      ],
+      model: "llama3-8b-8192"
+    });
+
+    res.json({
+      reply: completion.choices[0].message.content
+    });
 
   } catch (err) {
-    res.json({ reply: "Error occurred" });
+    console.error(err);
+    res.json({ reply: "Error from AI" });
   }
 });
-
 // ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 
