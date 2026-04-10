@@ -103,16 +103,18 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ===== GEMINI CHAT =====
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
+    console.log("USER:", message);
+
     if (!message) {
       return res.json({ reply: "❌ No message received" });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({ reply: "❌ Gemini API key missing" });
     }
 
     const model = genAI.getGenerativeModel({
@@ -120,17 +122,18 @@ app.post("/api/chat", async (req, res) => {
     });
 
     const result = await model.generateContent(message);
+    const response = await result.response;
+    const text = response.text();
 
-    const reply = result.response.text();
+    console.log("GEMINI:", text);
 
-    res.json({ reply });
+    res.json({ reply: text });
 
   } catch (err) {
-    console.error("FULL ERROR:", err);
+    console.error("ERROR:", err);
     res.json({ reply: "❌ " + err.message });
   }
-});
-// ===== START SERVER =====
+});// ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
