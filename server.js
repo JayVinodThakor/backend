@@ -107,26 +107,23 @@ app.post("/api/login", async (req, res) => {
 
 // CHAT
 app.post("/api/chat", async (req, res) => {
-  const { message } = req.body;
-
   try {
+    const { message } = req.body;
+
     const completion = await groq.chat.completions.create({
       messages: [
-        {
-          role: "user",
-          content: message
-        }
+        { role: "user", content: message }
       ],
       model: "llama3-8b-8192"
     });
 
-    res.json({
-      reply: completion.choices[0].message.content
-    });
+    const reply = completion.choices[0].message.content;
+
+    res.json({ reply });
 
   } catch (err) {
     console.error(err);
-    res.json({ reply: "Error from AI" });
+    res.json({ reply: "Error from AI" }); // <- THIS is what you're seeing
   }
 });
 // ===== START SERVER =====
